@@ -1,5 +1,3 @@
-// [lesson/01.md](https://github.com/ulresh/umake/blob/master/lesson/01.md)
-
 int main(int argc, const char **argv) {
 	return 0;
 }
