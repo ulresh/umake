@@ -10,8 +10,9 @@ int main(int argc, const char **argv) {
 	fs::path folder = fs::current_path();
 	cout << "folder:" << folder << endl;
 	cout << "filename:" << folder.filename() << endl;
+	cout << "parent:" << folder.parent_path() << endl;
 	for(auto ptr = folder.rbegin(), end = folder.rend(); ptr != end; ++ptr)
-		cout << "\t* " << ptr->c_str() << endl;
+		cout << "\t* " << *ptr << endl;
 	return 0;
 }
 
