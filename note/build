@@ -1,0 +1,7 @@
+!2024-02-28 14:15:48 boost_1_84
+cd ~/src/boost
+7zr x ~/Загрузки/boost_1_84_0.7z >/dev/null
+cd boost_1_84_0
+./bootstrap.sh --prefix=/usr/local/share/boost_1_84 --without-icu --without-libraries=python,math,log
+./b2 --disable-icu --without-mpi --without-python -s NO_BZIP2=1 -q -j`nproc`
+./b2 --disable-icu --without-mpi --without-python -s NO_BZIP2=1 -q install
