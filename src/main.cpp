@@ -6,6 +6,7 @@ using std::cerr;
 using std::endl;
 using std::flush;
 namespace fs = boost::filesystem;
+using boost::system::error_code;
 
 struct RootFolder {
 	static bool has_git_folder(fs::path folder) {
@@ -45,6 +46,12 @@ int main(int argc, const char **argv) {
 	cout << "folder:" << root_folder.current << endl;
 	cout << "project:" << root_folder.root << " source:" << root_folder.delta
 		 << " in_src:" << root_folder.in_src << endl;
+	for(auto &&file :
+			fs::recursive_directory_iterator(root_folder.current))
+		if(!file.is_directory() && file.path().extension() == ".cpp" &&
+		   file.path().filename().string()[0] != '.') {
+			cout << file << endl;
+		}
 	return 0;
 }
 
