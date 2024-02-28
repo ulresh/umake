@@ -1,11 +1,13 @@
 #include <iostream>
 #include <boost/filesystem.hpp>
+#include <boost/process.hpp>
 
 using std::cout;
 using std::cerr;
 using std::endl;
 using std::flush;
 namespace fs = boost::filesystem;
+namespace bp = boost::process;
 using boost::system::error_code;
 
 struct RootFolder {
@@ -65,6 +67,10 @@ int main(int argc, const char **argv) {
 		   file.path().filename().string()[0] != '.') {
 			auto object_file = root_folder.object_file(file);
 			cout << file << " -> " << object_file << endl;
+			int result = bp::system(bp::search_path("g++"), "-c",
+									"-o", object_file.string(),
+									file.path().string());
+			cout << "result:" << result << endl;
 		}
 	return 0;
 }
