@@ -18,9 +18,8 @@ struct RootFolder {
 			cerr << "Невозможен запуск в корне проекта" << endl;
 			return;
 		}
-		delta = current.filename();
-		in_src = delta == "src";
 		root = current;
+		bool in_src = root.filename() == "src";
 		for(;;) {
 			root = root.parent_path();
 			if(root.empty()) {
@@ -29,28 +28,43 @@ struct RootFolder {
 				return;
 			}
 			if(has_git_folder(root)) break;
-			fs::path n = delta;
-			delta = root.filename();
-			in_src = delta == "src";
-			delta /= n;
+			in_src = root.filename() == "src";
 		}
+		base = root;
+		if(in_src) base /= "src";
 		valid = true;
 	}
-	bool valid = false, in_src;
-	fs::path current, root, delta;
+	fs::path object_file(const fs::path &source_file) const {
+		auto delta = source_file.string().substr(base.size() + 1);
+		cout << delta << endl;
+		fs::path result(root);
+		result /= "obj";
+		result /= delta;
+		result.replace_extension(".o");
+		fs::path folder(result);
+		folder.remove_filename();
+		if(!fs::is_directory(folder)) {
+			cout << "mkdir " << folder << endl;
+			fs::create_directories(folder);
+		}
+		return result;
+	}
+	bool valid = false;
+	fs::path current, root, base;
 };
 
 int main(int argc, const char **argv) {
 	RootFolder root_folder;
 	if(!root_folder.valid) return 1;
 	cout << "folder:" << root_folder.current << endl;
-	cout << "project:" << root_folder.root << " source:" << root_folder.delta
-		 << " in_src:" << root_folder.in_src << endl;
+	cout << "project:" << root_folder.root
+		 << " base:" << root_folder.base << endl;
 	for(auto &&file :
 			fs::recursive_directory_iterator(root_folder.current))
 		if(!file.is_directory() && file.path().extension() == ".cpp" &&
 		   file.path().filename().string()[0] != '.') {
-			cout << file << endl;
+			auto object_file = root_folder.object_file(file);
+			cout << file << " -> " << object_file << endl;
 		}
 	return 0;
 }
