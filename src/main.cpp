@@ -7,37 +7,44 @@ using std::endl;
 using std::flush;
 namespace fs = boost::filesystem;
 
-bool has_git_folder(fs::path folder) {
-	folder /= ".git";
-	return fs::exists(folder);
-}
+struct RootFolder {
+	static bool has_git_folder(fs::path folder) {
+		folder /= ".git";
+		return fs::exists(folder);
+	}
+	RootFolder() : current(fs::current_path()) {
+		if(has_git_folder(current)) {
+			cerr << "Невозможен запуск в корне проекта" << endl;
+			return;
+		}
+		delta = current.filename();
+		in_src = delta == "src";
+		root = current;
+		for(;;) {
+			root = root.parent_path();
+			if(root.empty()) {
+				cerr << "Не получилось найти папку .git выше текущей папки"
+					 << endl;
+				return;
+			}
+			if(has_git_folder(root)) break;
+			fs::path n = delta;
+			delta = root.filename();
+			in_src = delta == "src";
+			delta /= n;
+		}
+		valid = true;
+	}
+	bool valid = false, in_src;
+	fs::path current, root, delta;
+};
 
 int main(int argc, const char **argv) {
-	fs::path folder = fs::current_path();
-	cout << "folder:" << folder << endl;
-	if(has_git_folder(folder)) {
-		cerr << "Невозможен запуск в корне проекта" << endl;
-		return 1;
-	}
-	cout << "filename:" << folder.filename() << endl;
-	cout << "parent:" << folder.parent_path() << endl;
-	fs::path up = folder.filename();
-	bool in_src = up == "src";
-	for(;;) {
-		folder = folder.parent_path();
-		if(folder.empty()) {
-			cerr << "Не получилось найти папку .git выше текущей папки"
-				 << endl;
-			return 1;
-		}
-		if(has_git_folder(folder)) break;
-		fs::path n = up;
-		up = folder.filename();
-		in_src = up == "src";
-		up /= n;
-	}
-	cout << "project:" << folder << " source:" << up
-		 << " in_src:" << in_src << endl;
+	RootFolder root_folder;
+	if(!root_folder.valid) return 1;
+	cout << "folder:" << root_folder.current << endl;
+	cout << "project:" << root_folder.root << " source:" << root_folder.delta
+		 << " in_src:" << root_folder.in_src << endl;
 	return 0;
 }
 
