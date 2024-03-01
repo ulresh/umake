@@ -74,11 +74,14 @@ void load_custom_file(Custom &custom, RootFolder &root_folder,
 		cout << "result:" << result << endl;
 		if(result != 0) exit(1);
 		boost::dll::shared_library lib(object_file.string());
-		boost::function<void(Custom&)>
-			load = lib.get<void(Custom&)>("build_umake");
+		boost::function<void(Custom&)> load;
+		try { load = lib.get<void(Custom&)>("_Z11build_umakeR6Custom"); }
+		catch(const std::exception &e) {
+			cerr << "exception: " << e.what() << endl; }
 		if(!load) { cerr << "Не найдена функция build_umake в файле "
 						 << source_file << endl; exit(1); }
 		load(custom);
+		lib.unload();
 	}
 }
 
