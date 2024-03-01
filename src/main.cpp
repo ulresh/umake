@@ -119,7 +119,7 @@ int main(int argc, const char **argv) {
 			cout << root_folder.cc;
 			for(auto &&a : ccargs) cout << ' ' << a;
 			cout << endl;
-			int result = bp::system(exe=root_folder.cc, args=ccargs);
+			int result = bp::system(bp::exe=root_folder.cc, bp::args=ccargs);
 			cout << "result:" << result << endl;
 			if(result != 0) exit(1);
 		}
