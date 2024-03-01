@@ -68,7 +68,7 @@ void load_custom_file(Custom &custom, RootFolder &root_folder,
 		int result = bp::system(root_folder.cc, "-x", "c++", "-shared",
 								"-I.",
 								"-o", object_file.string(),
-								file.path().string());
+								source_file.string());
 		cout << "result:" << result << endl;
 	}
 }
