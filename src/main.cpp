@@ -1,6 +1,7 @@
 #include <iostream>
 #include <boost/filesystem.hpp>
 #include <boost/process.hpp>
+#include "umake/custom.hpp"
 
 using std::cout;
 using std::cerr;
@@ -53,7 +54,29 @@ struct RootFolder {
 	}
 	bool valid = false;
 	fs::path current, root, base;
+	bp::filesystem::path cc;
 };
+
+void load_custom_file(Custom &custom, RootFolder &root_folder,
+					  const char *filename) {
+	fs::path source_file = root_folder.current;
+	source_file /= filename;
+	if(fs::exists(source_file)) {
+		auto object_file = root_folder.object_file(source_file);
+		object_file.replace_extension(".umake.so");
+		cout << source_file << " -> " << object_file << endl;
+		int result = bp::system(root_folder.cc, "-x", "c++", "-shared",
+								"-I.",
+								"-o", object_file.string(),
+								file.path().string());
+		cout << "result:" << result << endl;
+	}
+}
+
+void load_custom(Custom &custom, RootFolder &root_folder) {
+	load_custom_file(custom, root_folder, "build.umake");
+	load_custom_file(custom, root_folder, "build.local.umake");
+}
 
 int main(int argc, const char **argv) {
 	RootFolder root_folder;
@@ -61,13 +84,17 @@ int main(int argc, const char **argv) {
 	cout << "folder:" << root_folder.current << endl;
 	cout << "project:" << root_folder.root
 		 << " base:" << root_folder.base << endl;
+	root_folder.cc = bp::search_path("g++");
+	cout << "cc:" << root_folder.cc << endl;
+	Custom custom;
+	load_custom(custom, root_folder);
 	for(auto &&file :
 			fs::recursive_directory_iterator(root_folder.current))
 		if(!file.is_directory() && file.path().extension() == ".cpp" &&
 		   file.path().filename().string()[0] != '.') {
 			auto object_file = root_folder.object_file(file);
 			cout << file << " -> " << object_file << endl;
-			int result = bp::system(bp::search_path("g++"), "-c",
+			int result = bp::system(root_folder.cc, "-c",
 									"-o", object_file.string(),
 									file.path().string());
 			cout << "result:" << result << endl;
