@@ -1,6 +1,8 @@
 #include <iostream>
 #include <boost/filesystem.hpp>
 #include <boost/process.hpp>
+#include <boost/dll.hpp>
+
 #include "umake/custom.hpp"
 
 using std::cout;
@@ -70,6 +72,13 @@ void load_custom_file(Custom &custom, RootFolder &root_folder,
 								"-o", object_file.string(),
 								source_file.string());
 		cout << "result:" << result << endl;
+		if(result != 0) exit(1);
+		boost::dll::shared_library lib(object_file.string());
+		boost::function<void(Custom&)>
+			load = lib.get<void(Custom&)>("build_umake");
+		if(!load) { cerr << "Не найдена функция build_umake в файле "
+						 << source_file << endl; exit(1); }
+		load(custom);
 	}
 }
 
@@ -88,6 +97,9 @@ int main(int argc, const char **argv) {
 	cout << "cc:" << root_folder.cc << endl;
 	Custom custom;
 	load_custom(custom, root_folder);
+	if(!custom.include_pathes.empty())
+		cout << "custom.include_pathes[0]:" << custom.include_pathes.front()
+			 << endl;
 	for(auto &&file :
 			fs::recursive_directory_iterator(root_folder.current))
 		if(!file.is_directory() && file.path().extension() == ".cpp" &&
@@ -98,6 +110,7 @@ int main(int argc, const char **argv) {
 									"-o", object_file.string(),
 									file.path().string());
 			cout << "result:" << result << endl;
+			if(result != 0) exit(1);
 		}
 	return 0;
 }
