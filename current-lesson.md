@@ -1,1 +1,1 @@
-[lesson/01.md](https://github.com/ulresh/umake/blob/master/lesson/01.md#lesson01f)
+[lesson/02.md](/../master/lesson/02.md#lesson022)
