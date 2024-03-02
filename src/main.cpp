@@ -1,6 +1,7 @@
 #include "umake/custom.hpp"
 #include "stdlibs.hpp"
 #include "root-folder.hpp"
+#include "control.hpp"
 
 void load_custom_file(Custom &custom, RootFolder &root_folder,
 					  const char *filename) {
@@ -48,6 +49,7 @@ int main(int argc, const char **argv) {
 		cout << "custom.include_pathes[0]:" << custom.include_pathes.front()
 			 << endl;
 	std::list<std::string> ldargs;
+	Control control;
 	for(auto &&file :
 			fs::recursive_directory_iterator(root_folder.current))
 		if(!file.is_directory() && file.path().extension() == ".cpp" &&
