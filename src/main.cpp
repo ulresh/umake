@@ -109,9 +109,17 @@ int main(int argc, const char **argv) {
 		   file.path().filename().string()[0] != '.') {
 			auto object_file = root_folder.object_file(file);
 			cout << file << " -> " << object_file << endl;
-			int result = bp::system(root_folder.cc, "-c",
-									"-o", object_file.string(),
-									file.path().string());
+			std::list<std::string> ccargs;
+			ccargs.emplace_back("-c");
+			ccargs.emplace_back("-o");
+			ccargs.push_back(object_file.string());
+			ccargs.push_back(file.path().string());
+			for(auto &&p : custom.include_pathes)
+				ccargs.push_back(std::string("-I")+p);
+			cout << root_folder.cc;
+			for(auto &&a : ccargs) cout << ' ' << a;
+			cout << endl;
+			int result = bp::system(bp::exe=root_folder.cc, bp::args=ccargs);
 			cout << "result:" << result << endl;
 			if(result != 0) exit(1);
 		}
