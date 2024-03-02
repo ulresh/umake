@@ -41,6 +41,7 @@ int main(int argc, const char **argv) {
 		 << " base:" << root_folder.base << endl;
 	root_folder.cc = bp::search_path("g++");
 	cout << "cc:" << root_folder.cc << endl;
+	cout << "cpu:" << std::thread::hardware_concurrency() << endl;
 	Custom custom;
 	load_custom(custom, root_folder);
 	if(!custom.include_pathes.empty())

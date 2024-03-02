@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <thread>
 #include <boost/filesystem.hpp>
 #include <boost/process.hpp>
 #include <boost/dll.hpp>
