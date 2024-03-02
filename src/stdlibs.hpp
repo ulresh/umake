@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <thread>
+#include <map>
 #include <boost/filesystem.hpp>
 #include <boost/process.hpp>
 #include <boost/dll.hpp>
