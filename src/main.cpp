@@ -54,6 +54,13 @@ struct RootFolder {
 		}
 		return result;
 	}
+	fs::path binary_file() const {
+		fs::path result(root);
+		result /= "bin";
+		if(current == base) result /= root.filename();
+		else result /= current.filename();
+		return result;
+	}
 	bool valid = false;
 	fs::path current, root, base;
 	bp::filesystem::path cc;
@@ -103,6 +110,7 @@ int main(int argc, const char **argv) {
 	if(!custom.include_pathes.empty())
 		cout << "custom.include_pathes[0]:" << custom.include_pathes.front()
 			 << endl;
+	std::list<std::string> ldargs;
 	for(auto &&file :
 			fs::recursive_directory_iterator(root_folder.current))
 		if(!file.is_directory() && file.path().extension() == ".cpp" &&
@@ -122,8 +130,20 @@ int main(int argc, const char **argv) {
 			int result = bp::system(bp::exe=root_folder.cc, bp::args=ccargs);
 			cout << "result:" << result << endl;
 			if(result != 0) exit(1);
+			ldargs.push_back(object_file.string());
 		}
-	return 0;
+	auto binary_file = root_folder.binary_file();
+	cout << "binary:" << binary_file << endl;
+	ldargs.push_front(binary_file.string());
+	ldargs.push_front("-o");
+	for(auto &&p : custom.library_files) ldargs.push_back(p);
+	for(auto &&p : custom.libraries) ldargs.push_back(std::string("-l")+p);
+	cout << root_folder.cc;
+	for(auto &&a : ldargs) cout << ' ' << a;
+	cout << endl;
+	int result = bp::system(bp::exe=root_folder.cc, bp::args=ldargs);
+	cout << "result:" << result << endl;
+	return result;
 }
 
 /*
