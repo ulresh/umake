@@ -70,7 +70,10 @@ int main(int argc, const char **argv) {
 			cout << "result:" << result << endl;
 			if(result != 0) exit(1);
 			ldargs.push_back(object_file.string());
+			if(control.error) break;
 		}
+	control.ios.run();
+	if(control.error) exit(1);
 	auto binary_file = root_folder.binary_file();
 	cout << "binary:" << binary_file << endl;
 	ldargs.push_front(binary_file.string());

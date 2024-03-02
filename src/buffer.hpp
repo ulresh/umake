@@ -5,6 +5,7 @@
 struct Buffer {
     typedef std::array<char, 4096> Block;
     std::list<Block> data;
+    int last_block_size = 0;
 };
 
 /*

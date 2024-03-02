@@ -3,10 +3,16 @@
 #include "stdlibs.hpp"
 #include "buffer.hpp"
 
+struct Control;
+
 struct Compiler {
-	Compiler(const std::string &cmd, std::list<std::string> args);
+	Compiler(Control &control, const std::string &cmd,
+			 std::list<std::string> args);
+	Control &control;
+	bp::async_pipe pout, perr;
 	bp::child child;
-	Buffer out, err;
+	Buffer bout, berr;
+	bool eof_out = false, eof_err = false;
 };
 
 /*

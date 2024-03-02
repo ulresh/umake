@@ -4,7 +4,9 @@
 #include "compiler.hpp"
 
 struct Control {
+	void start(const std::string &cmd, std::list<std::string> args);
 	io_service ios;
+	bool error = false;
 	std::map<pid_t, std::unique_ptr<Compiler> > compilers;
 };
 
