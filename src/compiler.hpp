@@ -6,9 +6,11 @@
 struct Control;
 
 struct Compiler {
-	Compiler(Control &control, const std::string &cmd,
-			 std::list<std::string> args);
+	Compiler(Control &control, const std::string &source,
+			 const std::string &cmd, std::list<std::string> args);
+	void async_start_pipes();
 	Control &control;
+	const std::string source;
 	bp::async_pipe pout, perr;
 	bp::child child;
 	Buffer bout, berr;
