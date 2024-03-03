@@ -9,6 +9,8 @@ struct Compiler {
 	Compiler(Control &control, const std::string &source,
 			 const std::string &cmd, std::list<std::string> args);
 	void async_start_pipes();
+	void handle_pipe(bp::async_pipe *pipep, Buffer *bufp,
+					 const error_code &ec, std::size_t size);
 	Control &control;
 	const std::string source;
 	bp::async_pipe pout, perr;
