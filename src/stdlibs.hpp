@@ -7,7 +7,7 @@
 #include <boost/process.hpp>
 #include <boost/dll.hpp>
 #include <boost/asio.hpp>
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 using std::cout;
