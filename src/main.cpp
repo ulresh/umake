@@ -64,7 +64,8 @@ int main(int argc, const char **argv) {
 			ccargs.push_back(file.path().string());
 			for(auto &&p : custom.include_pathes)
 				ccargs.push_back(std::string("-I")+p);
-			control.start(root_folder.cc.string(), ccargs);
+			control.start(file.path().string(),
+						  root_folder.cc.string(), ccargs);
 			if(control.compilers.size() >=
 			   std::thread::hardware_concurrency()) {
 				cout << flush;
