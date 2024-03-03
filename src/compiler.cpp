@@ -29,7 +29,7 @@ void Compiler::handle_pipe(bp::async_pipe *pipep, Buffer *bufp,
 			ptime t = microsec_clock::local_time();
 			child.wait();
 			int result = child.exit_code();
-			cout << source << "result:" << result << " wait time:"
+			cout << source << " result:" << result << " wait time:"
 				 << (microsec_clock::local_time() - t) << endl;
 			if(result) control.error = true;
 			if(!berr.empty()) {
