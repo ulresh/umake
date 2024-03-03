@@ -21,7 +21,8 @@ void Compiler::async_start_pipes() {
 
 void Compiler::handle_pipe(bp::async_pipe *pipep, Buffer *bufp,
 						   const error_code &ec, std::size_t size) {
-	cout << source << " size:" << size << " ec:" << ec << endl;
+	cout << source << (pipep == &pout ? " out" : " err")
+		 << " size:" << size << " ec:" << ec << endl;
 	bufp->last_block_size += size;
 	if(ec) {
 		if(pipep == &pout) eof_out = true; else eof_err = true;
