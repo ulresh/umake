@@ -10,11 +10,11 @@ Compiler::Compiler(Control &control, const std::string &source,
 
 void Compiler::async_start_pipes() {
 	bout.data.emplace_back();
-	ai::async_read(pout, ai::buffer(bout.data.back().data),
+	ai::async_read(pout, ai::buffer(bout.data.back()),
 				   boost::bind(&Compiler::handle_pipe, this, &pout, &bout,
 							   ph::error, ph::bytes_transferred));
 	berr.data.emplace_back();
-	ai::async_read(perr, ai::buffer(berr.data.back().data),
+	ai::async_read(perr, ai::buffer(berr.data.back()),
 				   boost::bind(&Compiler::handle_pipe, this, &perr, &berr,
 							   ph::error, ph::bytes_transferred));
 }
@@ -45,13 +45,13 @@ void Compiler::handle_pipe(bp::async_pipe *pipep, Buffer *bufp,
 	}
 	else if(bufp->last_block_size < Buffer::Block::size())
 		ai::async_read(*pipep,
-				ai::buffer(bufp->data.back().data + bufp->last_block_size,
+				ai::buffer(bufp->data.back().data() + bufp->last_block_size,
 						   Buffer::Block::size() - bufp->last_block_size),
 					   boost::bind(&Compiler::handle_pipe, this, pipep, bufp,
 								   ph::error, ph::bytes_transferred));
 	else {
 		bufp->data.emplace_back();
-		ai::async_read(*pipep, ai::buffer(bufp->data.back().data),
+		ai::async_read(*pipep, ai::buffer(bufp->data.back()),
 					   boost::bind(&Compiler::handle_pipe, this, pipep, bufp,
 								   ph::error, ph::bytes_transferred));
 	}
