@@ -1,6 +1,7 @@
 #include "umake/custom.hpp"
 #include "stdlibs.hpp"
 #include "root-folder.hpp"
+#include "control.hpp"
 
 void load_custom_file(Custom &custom, RootFolder &root_folder,
 					  const char *filename) {
@@ -41,12 +42,14 @@ int main(int argc, const char **argv) {
 		 << " base:" << root_folder.base << endl;
 	root_folder.cc = bp::search_path("g++");
 	cout << "cc:" << root_folder.cc << endl;
+	cout << "cpu:" << std::thread::hardware_concurrency() << endl;
 	Custom custom;
 	load_custom(custom, root_folder);
 	if(!custom.include_pathes.empty())
 		cout << "custom.include_pathes[0]:" << custom.include_pathes.front()
 			 << endl;
 	std::list<std::string> ldargs;
+	Control control;
 	for(auto &&file :
 			fs::recursive_directory_iterator(root_folder.current))
 		if(!file.is_directory() && file.path().extension() == ".cpp" &&
@@ -67,7 +70,10 @@ int main(int argc, const char **argv) {
 			cout << "result:" << result << endl;
 			if(result != 0) exit(1);
 			ldargs.push_back(object_file.string());
+			if(control.error) break;
 		}
+	control.ios.run();
+	if(control.error) exit(1);
 	auto binary_file = root_folder.binary_file();
 	cout << "binary:" << binary_file << endl;
 	ldargs.push_front(binary_file.string());
