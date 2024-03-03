@@ -56,6 +56,7 @@ int main(int argc, const char **argv) {
 		   file.path().filename().string()[0] != '.') {
 			auto object_file = root_folder.object_file(file);
 			cout << file << " -> " << object_file << endl;
+			ldargs.push_back(object_file.string());
 			std::list<std::string> ccargs;
 			ccargs.emplace_back("-c");
 			ccargs.emplace_back("-o");
@@ -63,13 +64,14 @@ int main(int argc, const char **argv) {
 			ccargs.push_back(file.path().string());
 			for(auto &&p : custom.include_pathes)
 				ccargs.push_back(std::string("-I")+p);
-			cout << root_folder.cc;
-			for(auto &&a : ccargs) cout << ' ' << a;
-			cout << endl;
-			int result = bp::system(bp::exe=root_folder.cc, bp::args=ccargs);
-			cout << "result:" << result << endl;
-			if(result != 0) exit(1);
-			ldargs.push_back(object_file.string());
+			control.start(root_folder.cc, ccargs);
+			if(control.compilers.size() >=
+			   std::thread::hardware_concurrency()) {
+				cout << flush;
+				do { control.ios.run_one(); }
+				while(control.compilers.size() >=
+					  std::thread::hardware_concurrency());
+			}
 			if(control.error) break;
 		}
 	control.ios.run();

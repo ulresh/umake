@@ -8,6 +8,7 @@ struct Control;
 struct Compiler {
 	Compiler(Control &control, const std::string &cmd,
 			 std::list<std::string> args);
+	void async_start_pipes();
 	Control &control;
 	bp::async_pipe pout, perr;
 	bp::child child;
