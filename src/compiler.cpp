@@ -2,8 +2,10 @@
 #include "compiler.hpp"
 
 Compiler::Compiler(Control &control, const std::string &source,
+				   std::time_t source_mtime, const std::string &dependencies,
 				   const std::string &cmd, std::list<std::string> args)
 	: control(control), source(source)
+	, source_mtime(source_mtime), dependencies(dependencies)
 	, pout(control.ios), perr(control.ios)
 	, child(bp::exe=cmd, bp::args=args, bp::std_out>pout, bp::std_err>perr)
 {}

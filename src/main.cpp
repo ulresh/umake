@@ -57,15 +57,45 @@ int main(int argc, const char **argv) {
 			auto object_file = root_folder.object_file(file);
 			cout << file << " -> " << object_file << endl;
 			ldargs.push_back(object_file.string());
+			bool build = false;
+			std::string dependencies;
+			std::time_t source_mtime = 0;
+			if(!fs::exists(object_file)) build = true;
+			else {
+				source_mtime = fs::last_write_time(file);
+				if(source_mtime >= fs::last_write_time(object_file))
+					build = true;
+				else {
+					auto dependencies_file = object_file;
+					dependencies_file.replace_extension(".dep");
+					if(!fs::exists(dependencies_file) || source_mtime >=
+					   fs::last_write_time(dependencies_file))
+						dependencies = dependencies_file.string();
+					else if(Compiler::check_dependencies(source_mtime,
+								dependencies_file.string())) build = true;
+				}
+			}
+			if(!build && dependencies.empty()) continue;
 			std::list<std::string> ccargs;
-			ccargs.emplace_back("-c");
-			ccargs.emplace_back("-o");
+			if(build) {
+				control.build = true;
+				ccargs.emplace_back("-c");
+				ccargs.emplace_back("-o");
+			}
+			else {
+				ccargs.emplace_back("-E");
+				ccargs.emplace_back("-MM");
+				ccargs.emplace_back("-MF");
+				ccargs.push_back(dependencies);
+				ccargs.emplace_back("-MT");
+			}
 			ccargs.push_back(object_file.string());
 			ccargs.push_back(file.path().string());
 			for(auto &&p : custom.include_pathes)
 				ccargs.push_back(std::string("-I")+p);
 			control.start(file.path().string().substr(
 								root_folder.current.size() + 1),
+						  source_mtime, dependencies,
 						  root_folder.cc.string(), ccargs);
 			if(control.compilers.size() >=
 			   std::thread::hardware_concurrency()) {
@@ -80,6 +110,7 @@ int main(int argc, const char **argv) {
 	if(control.error) exit(1);
 	auto binary_file = root_folder.binary_file();
 	cout << "binary:" << binary_file << endl;
+	if(!control.build && fs::exists(binary_file)) return 0;
 	ldargs.push_front(binary_file.string());
 	ldargs.push_front("-o");
 	for(auto &&p : custom.library_files) ldargs.push_back(p);
