@@ -77,9 +77,41 @@ void Compiler::handle_pipe(bp::async_pipe *pipep, Buffer *bufp,
 	}
 }
 
+inline int buffer_size() { return 4096; }
+struct FileCLoser {
+	FileCLoser(int file) : file(file) {}
+	~FileCloser() { auto ret = close(file); }
+	int file;
+};
+
 bool Compiler::check_dependencies(std::time_t source_mtime,
 								  const std::string &dependencies) {
-	return true;
+	FileCloser file(open(dependencies.c_str(), O_RDONLY));
+	if(file.file < 0) {
+		cerr << "Ошибка открытия для чтения файла зависимостей "
+			 << dependencies << endl;
+		return true;
+	}
+	std::string cache;
+	char *buffer;
+	std::unique_ptr<char[]> buffer_holder(buffer = new char[buffer_size()]);
+	for(;;) {
+		int size = read(file.file, buffer, buffer_size());
+		cout << dependencies << " size:" << size << endl;
+		if(size < 0) {
+			cerr << "Ошибка чтения файла зависимостей "
+				 << dependencies << endl;
+			return true;
+		}
+		else if(size == 0) {
+			// TODO
+			break;
+		}
+		else {
+			// TODO
+		}
+	}
+	return true; // TODO изменить в итоговой версии
 }
 
 /*
