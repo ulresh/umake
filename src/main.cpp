@@ -4,6 +4,7 @@
 #include "control.hpp"
 
 std::ofstream ulog;
+Tee uout;
 
 void load_custom_file(Custom &custom, RootFolder &root_folder,
 					  const char *filename) {
