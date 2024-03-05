@@ -44,7 +44,6 @@ void Compiler::handle_pipe(bp::async_pipe *pipep, Buffer *bufp,
 				cout << bout << endl;
 				if(!bout.eol_at_end()) cout << endl;
 			}
-			control.compilers.erase(child.id());
 			if(result) control.error = true;
 			else if(!dependencies.empty() &&
 					check_dependencies(source_mtime, dependencies)) {
@@ -58,6 +57,7 @@ void Compiler::handle_pipe(bp::async_pipe *pipep, Buffer *bufp,
 				args.emplace_front("-c");
 				control.start(source, 0, std::string(), cmd, args);
 			}
+			control.compilers.erase(child.id());
 		}
 	}
 	else {
