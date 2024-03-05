@@ -91,6 +91,11 @@ int main(int argc, const char **argv) {
 			}
 			ccargs.push_back(object_file.string());
 			ccargs.push_back(file.path().string());
+			ccargs.emplace_back("-fdiagnostics-color");
+			for(auto &&p : custom.system_include_pathes) {
+				ccargs.emplace_back("-isystem");
+				ccargs.push_back(p);
+			}
 			for(auto &&p : custom.include_pathes)
 				ccargs.push_back(std::string("-I")+p);
 			control.start(file.path().string().substr(
