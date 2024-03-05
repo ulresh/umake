@@ -11,8 +11,18 @@ void load_custom_file(Custom &custom, RootFolder &root_folder,
 		auto object_file = root_folder.object_file(source_file);
 		object_file.replace_extension(".umake.so");
 		cout << source_file << " -> " << object_file << endl;
+		std::string inc;
+		{	auto env = boost::this_process::environment();
+			auto inc_env = env["UMAKE_CUSTOM_INCLUDE_PATH"];
+			if(inc_env.empty()) inc = "-I.";
+			else {
+				inc = "-I";
+				inc.append(inc_env.to_string());
+				cout << "inc:" << inc << endl;
+			}
+		}
 		int result = bp::system(root_folder.cc, "-x", "c++", "-shared",
-								"-I.",
+								inc,
 								"-o", object_file.string(),
 								source_file.string());
 		cout << "result:" << result << endl;
