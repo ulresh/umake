@@ -13,7 +13,7 @@ void load_custom_file(Custom &custom, RootFolder &root_folder,
 		cout << source_file << " -> " << object_file << endl;
 		std::string inc;
 		{	auto env = boost::this_process::environment();
-			auto inc_env = env.at("UMAKE_CUSTOM_INCLUDE_PATH");
+			auto inc_env = env["UMAKE_CUSTOM_INCLUDE_PATH"];
 			if(inc_env.empty()) inc = "-I.";
 			else {
 				inc = "-I";

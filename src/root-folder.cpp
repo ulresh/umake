@@ -41,6 +41,10 @@ fs::path RootFolder::object_file(const fs::path &source_file) const {
 fs::path RootFolder::binary_file() const {
 	fs::path result(root);
 	result /= "bin";
+	if(!fs::is_directory(result)) {
+		cout << "mkdir " << result << endl;
+		fs::create_directory(result);
+	}
 	if(current == base) result /= root.filename();
 	else result /= current.filename();
 	return result;
