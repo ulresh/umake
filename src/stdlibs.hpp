@@ -32,12 +32,13 @@ using boost::posix_time::from_time_t;
 
 extern std::ofstream ulog;
 
-struct Tee {};
+struct Tee : std::ostream { Tee() {} };
 template<typename T> Tee & operator << (Tee &out, const T v) {
 	ulog << v;
 	cout << v;
 	return out;
 }
+// inline Tee &endl(Tee &out) { ulog << endl; cout << endl; return out; }
 extern Tee uout;
 
 /*
