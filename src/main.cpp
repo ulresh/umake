@@ -3,6 +3,8 @@
 #include "root-folder.hpp"
 #include "control.hpp"
 
+std::ofstream ulog;
+
 void load_custom_file(Custom &custom, RootFolder &root_folder,
 					  const char *filename) {
 	fs::path source_file = root_folder.current;
@@ -45,6 +47,8 @@ void load_custom(Custom &custom, RootFolder &root_folder) {
 }
 
 int main(int argc, const char **argv) {
+	cout << "https://github.com/ulresh/umake" << endl;
+	ulog.open("umake.log", std::ofstream::trunc);
 	RootFolder root_folder;
 	if(!root_folder.valid) return 1;
 	cout << "folder:" << root_folder.current << endl;

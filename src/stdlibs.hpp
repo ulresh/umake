@@ -30,6 +30,8 @@ using boost::posix_time::minutes;
 using boost::posix_time::time_duration;
 using boost::posix_time::from_time_t;
 
+extern std::ofstream ulog;
+
 /*
  * Local Variables:
  * mode: c++
