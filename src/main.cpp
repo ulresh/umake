@@ -81,7 +81,7 @@ int main(int argc, const char **argv) {
 					if(!fs::exists(dependencies_file) || source_mtime >=
 					   fs::last_write_time(dependencies_file))
 						dependencies = dependencies_file.string();
-					else if(Compiler::check_dependencies(source_mtime,
+					else if(Compiler::check_dependencies(object_mtime,
 								dependencies_file.string())) build = true;
 				}
 			}

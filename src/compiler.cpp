@@ -93,7 +93,7 @@ s0 s2                                    s3 s4 s5
 s4 s6                               s7        s4 s5
  /home/reshu/project/umake/src/name\ test.hpp \
  /home/reshu/project/umake/src/stdlibs.hpp
-
+                                           s8
  */
 
 bool Compiler::check_dependencies(std::time_t object_mtime,
@@ -107,6 +107,7 @@ bool Compiler::check_dependencies(std::time_t object_mtime,
 	int state = 0;
 	std::string filename;
 	char *buffer;
+	bool skip = true; // первым указан source_file, который уже проверен
 	std::unique_ptr<char[]> buffer_holder(buffer = new char[buffer_size()]);
 	for(;;) {
 		int size = read(file.file, buffer, buffer_size());
@@ -117,7 +118,7 @@ bool Compiler::check_dependencies(std::time_t object_mtime,
 			return true;
 		}
 		else if(size == 0) {
-			if(state != 4 || !filename.empty()) goto bad_format;
+			if(state != 8 || !filename.empty()) goto bad_format;
 			break;
 		}
 		else {
@@ -161,22 +162,33 @@ bool Compiler::check_dependencies(std::time_t object_mtime,
 					}
 					break;
 				case 6: switch(*ptr) {
+					case '\n':
+						state = 10;
 					case ' ':
+						state -= 2;
 						if(ptr > mark) filename.append(mark, ptr - mark);
-						if(fs::last_write_time(filename) >= object_mtime) {
-							cout << dependencies << " need build for "
+						if(skip)
+							cout << dependencies << " skip "
 								 << filename << endl;
-							return true;
+						else {
+							skip = false;
+							if(fs::last_write_time(filename) >=
+							   object_mtime) {
+								cout << dependencies << " need build for "
+									 << filename << ' '
+							 << from_time_t(fs::last_write_time(filename))
+							 << " object:" << from_time_t(object_mtime)
+									 << endl;
+								return true;
+							}
+							cout << dependencies << ' ' << filename << endl;
 						}
-						cout << dependencies << ' ' << filename << endl;
 						filename.clear();
-						state = 4;
 						break;
 					case '\\':
 						if(ptr > mark) filename.append(mark, ptr - mark);
 						++state;
 						break;
-					case '\n': goto bad_format; // TODO последнее имя
 					default: ;
 					}
 					break;
