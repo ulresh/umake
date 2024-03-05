@@ -77,13 +77,22 @@ int main(int argc, const char **argv) {
 			else {
 				std::time_t source_mtime = fs::last_write_time(file);
 				object_mtime = fs::last_write_time(object_file);
-				if(source_mtime >= object_mtime) build = true;
+				if(source_mtime >= object_mtime) {
+					build = true;
+					ulog << "source:" << from_time_t(source_mtime)
+						 << " object:" << from_time_t(object_mtime)
+						 << endl;
+				}
 				else {
 					auto dependencies_file = object_file;
 					dependencies_file.replace_extension(".dep");
 					if(!fs::exists(dependencies_file) || source_mtime >=
-					   fs::last_write_time(dependencies_file))
+					   fs::last_write_time(dependencies_file)) {
 						dependencies = dependencies_file.string();
+						ulog << "source:" << from_time_t(source_mtime)
+		<< " dep:" << from_time_t(fs::last_write_time(dependencies_file))
+							 << endl;
+					}
 					else if(Compiler::check_dependencies(object_mtime,
 								dependencies_file.string())) build = true;
 				}
