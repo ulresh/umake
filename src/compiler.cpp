@@ -25,7 +25,7 @@ void Compiler::async_start_pipes() {
 
 void Compiler::handle_pipe(bp::async_pipe *pipep, Buffer *bufp,
 						   const error_code &ec, std::size_t size) {
-	cout << source << (pipep == &pout ? " out" : " err")
+	ulog << source << (pipep == &pout ? " out" : " err")
 		 << " size:" << size << " ec:" << ec << endl;
 	bufp->last_block_size += size;
 	if(ec) {
@@ -34,7 +34,7 @@ void Compiler::handle_pipe(bp::async_pipe *pipep, Buffer *bufp,
 			ptime t = microsec_clock::local_time();
 			child.wait();
 			int result = child.exit_code();
-			cout << source << " result:" << result << " wait time:"
+			ulog << source << " result:" << result << " wait time:"
 				 << (microsec_clock::local_time() - t) << endl;
 			if(!berr.empty()) {
 				cerr << berr << endl;
