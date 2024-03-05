@@ -78,8 +78,8 @@ void Compiler::handle_pipe(bp::async_pipe *pipep, Buffer *bufp,
 }
 
 inline int buffer_size() { return 4096; }
-struct FileCLoser {
-	FileCLoser(int file) : file(file) {}
+struct FileCloser {
+	FileCloser(int file) : file(file) {}
 	~FileCloser() { auto ret = close(file); }
 	int file;
 };
