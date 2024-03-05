@@ -84,6 +84,18 @@ struct FileCloser {
 	int file;
 };
 
+/*
+ \
+s0 s1 s0
+/home/reshu/project/umake/obj/name test.o: \
+s0 s2                                    s3 s4 s5
+ /home/reshu/project/umake/src/name\ test.cpp \
+s4 s6                               s7        s4 s5
+ /home/reshu/project/umake/src/name\ test.hpp \
+ /home/reshu/project/umake/src/stdlibs.hpp
+
+ */
+
 bool Compiler::check_dependencies(std::time_t source_mtime,
 								  const std::string &dependencies) {
 	FileCloser file(open(dependencies.c_str(), O_RDONLY));
@@ -93,8 +105,8 @@ bool Compiler::check_dependencies(std::time_t source_mtime,
 		return true;
 	}
 	int state = 0;
-	std::string cache;
-	char *buffer, *mark = nullptr;
+	std::string filename;
+	char *buffer;
 	std::unique_ptr<char[]> buffer_holder(buffer = new char[buffer_size()]);
 	for(;;) {
 		int size = read(file.file, buffer, buffer_size());
@@ -105,17 +117,93 @@ bool Compiler::check_dependencies(std::time_t source_mtime,
 			return true;
 		}
 		else if(size == 0) {
-			if(!cache.empty()) {
-				// TODO
-			}
+			if(state != 4 || !filename.empty()) goto bad_format;
 			break;
 		}
 		else {
-			char *ptr = buffer, *end = buffer + size;
-			// TODO
+			char *ptr = buffer, *mark = buffer, *end = buffer + size;
+			for(; ptr < end; ++ptr) switch(state) {
+				default: goto bad_format;
+				case 0: switch(*ptr) {
+					case ' ': break;
+					case '\\': ++state; break;
+					case '\n': goto bad_format;
+					default: state = 2;
+				}
+				break;
+				case 1:
+				case 5:
+					if(*ptr != '\n') goto bad_format;
+					--state;
+					break;
+				case 2: switch(*ptr) {
+					// case ' ': // in default
+					case '\n':
+					case '\\': goto bad_format;
+					case ':': ++state; break;
+					default:
+					}
+					break;
+				case 3: switch(*ptr) {
+					case ' ': ++state; break;
+					// case ':': // in default
+					case '\\':
+					case '\n': goto bad_format;
+						// TODO
+					default: --state;
+					}
+					break;
+				case 4: switch(*ptr) {
+					case ' ': break;
+					case '\\': ++state; break;
+					case '\n': goto bad_format;
+					default: mark = ptr; state = 6;
+					}
+					break;
+				case 6: switch(*ptr) {
+					case ' ':
+						if(ptr > mark) filename.append(mark, ptr - mark);
+						if(fs::last_write_time(filename) >= object_mtime) {
+							cout << dependencies << " need build for "
+								 << filename << endl;
+							return true;
+						}
+						cout << dependencies << ' ' << filename << endl;
+						filename.clear();
+						state = 4;
+						break;
+					case '\\':
+						if(ptr > mark) filename.append(mark, ptr - mark);
+						++state;
+						break;
+					case '\n': goto bad_format; // TODO последнее имя
+					default:
+					}
+					break;
+				case 7:
+					if(*ptr != ' ') goto bad_format;
+					mark = ptr; --state;
+					break;
+				/*
+				case : switch(*ptr) {
+					case ' ':
+					case ':':
+					case '\\':
+					case '\n':
+						// TODO
+					default:
+					}
+					break;
+				*/
+			}
+			if(state == 6 && mark < end) filename.append(mark, end - mark);
 		}
 	}
-	return true; // TODO изменить в итоговой версии
+	return false;
+ bad_format:
+	cerr << "Ошибка формата в файле зависимостей " << dependencies
+		 << " state:" << state << endl;
+	return true;
 }
 
 /*
