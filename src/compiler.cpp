@@ -92,9 +92,7 @@ bool Compiler::check_dependencies(std::time_t source_mtime,
 			 << dependencies << endl;
 		return true;
 	}
-	int state = 0;
-	std::string cache;
-	char *buffer, *mark = nullptr;
+	char *buffer;
 	std::unique_ptr<char[]> buffer_holder(buffer = new char[buffer_size()]);
 	for(;;) {
 		int size = read(file.file, buffer, buffer_size());
@@ -105,13 +103,10 @@ bool Compiler::check_dependencies(std::time_t source_mtime,
 			return true;
 		}
 		else if(size == 0) {
-			if(!cache.empty()) {
-				// TODO
-			}
+			// TODO
 			break;
 		}
 		else {
-			char *ptr = buffer, *end = buffer + size;
 			// TODO
 		}
 	}
