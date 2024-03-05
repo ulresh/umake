@@ -167,11 +167,12 @@ bool Compiler::check_dependencies(std::time_t object_mtime,
 					case ' ':
 						state -= 2;
 						if(ptr > mark) filename.append(mark, ptr - mark);
-						if(skip)
+						if(skip) {
+							skip = false;
 							cout << dependencies << " skip "
 								 << filename << endl;
+						}
 						else {
-							skip = false;
 							if(fs::last_write_time(filename) >=
 							   object_mtime) {
 								cout << dependencies << " need build for "
