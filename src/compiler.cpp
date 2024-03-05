@@ -2,10 +2,10 @@
 #include "compiler.hpp"
 
 Compiler::Compiler(Control &control, const std::string &source,
-				   std::time_t source_mtime, const std::string &dependencies,
+				   std::time_t object_mtime, const std::string &dependencies,
 				   const std::string &cmd, std::list<std::string> args)
 	: control(control), source(source)
-	, source_mtime(source_mtime), dependencies(dependencies)
+	, object_mtime(object_mtime), dependencies(dependencies)
 	, pout(control.ios), perr(control.ios)
 	, child(bp::exe=cmd, bp::args=args, bp::std_out>pout, bp::std_err>perr)
 {
@@ -46,7 +46,7 @@ void Compiler::handle_pipe(bp::async_pipe *pipep, Buffer *bufp,
 			}
 			if(result) control.error = true;
 			else if(!dependencies.empty() &&
-					check_dependencies(source_mtime, dependencies)) {
+					check_dependencies(object_mtime, dependencies)) {
 				args.pop_front(); // -E
 				args.pop_front(); // -MM
 				args.pop_front(); // -MF
@@ -96,7 +96,7 @@ s4 s6                               s7        s4 s5
 
  */
 
-bool Compiler::check_dependencies(std::time_t source_mtime,
+bool Compiler::check_dependencies(std::time_t object_mtime,
 								  const std::string &dependencies) {
 	FileCloser file(open(dependencies.c_str(), O_RDONLY));
 	if(file.file < 0) {
@@ -184,17 +184,6 @@ bool Compiler::check_dependencies(std::time_t source_mtime,
 					if(*ptr != ' ') goto bad_format;
 					mark = ptr; --state;
 					break;
-				/*
-				case : switch(*ptr) {
-					case ' ':
-					case ':':
-					case '\\':
-					case '\n':
-						// TODO
-					default:
-					}
-					break;
-				*/
 			}
 			if(state == 6 && mark < end) filename.append(mark, end - mark);
 		}
