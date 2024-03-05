@@ -4,7 +4,8 @@
 #include "control.hpp"
 
 std::ofstream ulog;
-Tee uout;
+TeeDevice uout_dev(cout,ulog);
+boost::iostreams::stream<TeeDevice> uout(uout_dev);
 
 void load_custom_file(Custom &custom, RootFolder &root_folder,
 					  const char *filename) {

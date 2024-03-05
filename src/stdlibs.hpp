@@ -9,6 +9,8 @@
 #include <boost/asio.hpp>
 #include <boost/bind/bind.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/iostreams/tee.hpp>
+#include <boost/iostreams/stream.hpp>
 
 using std::cout;
 using std::cerr;
@@ -31,15 +33,8 @@ using boost::posix_time::time_duration;
 using boost::posix_time::from_time_t;
 
 extern std::ofstream ulog;
-
-struct Tee : std::ostream { Tee() {} };
-template<typename T> Tee & operator << (Tee &out, const T v) {
-	ulog << v;
-	cout << v;
-	return out;
-}
-// inline Tee &endl(Tee &out) { ulog << endl; cout << endl; return out; }
-extern Tee uout;
+typedef boost::iostreams::tee_device<ostream,ostream> TeeDevice;
+extern boost::iostreams::stream<TeeDevice> uout;
 
 /*
  * Local Variables:
