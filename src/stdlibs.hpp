@@ -33,7 +33,7 @@ using boost::posix_time::time_duration;
 using boost::posix_time::from_time_t;
 
 extern std::ofstream ulog;
-typedef boost::iostreams::tee_device<ostream,ostream> TeeDevice;
+typedef boost::iostreams::tee_device<std::ostream,std::ostream> TeeDevice;
 extern boost::iostreams::stream<TeeDevice> uout;
 
 /*
