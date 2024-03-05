@@ -141,7 +141,7 @@ bool Compiler::check_dependencies(std::time_t object_mtime,
 					case '\n':
 					case '\\': goto bad_format;
 					case ':': ++state; break;
-					default:
+					default: ;
 					}
 					break;
 				case 3: switch(*ptr) {
@@ -177,7 +177,7 @@ bool Compiler::check_dependencies(std::time_t object_mtime,
 						++state;
 						break;
 					case '\n': goto bad_format; // TODO последнее имя
-					default:
+					default: ;
 					}
 					break;
 				case 7:
