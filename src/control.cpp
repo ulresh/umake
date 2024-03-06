@@ -3,9 +3,9 @@
 void Control::start(const std::string &source,
 			std::time_t object_mtime, const std::string &dependencies,
 			const std::string &cmd, std::list<std::string> args) {
-	cout << cmd;
-	for(auto &&a : args) cout << ' ' << a;
-	cout << endl;
+	uout << cmd;
+	for(auto &&a : args) uout << ' ' << a;
+	uout << endl;
 	Compiler *p;
 	std::unique_ptr<Compiler>
 		h(p = new Compiler(*this, source, object_mtime, dependencies,
