@@ -5,7 +5,7 @@
 
 struct Control {
 	void start(const std::string &source,
-			   std::time_t source_mtime, const std::string &dependencies,
+			   std::time_t object_mtime, const std::string &dependencies,
 			   const std::string &cmd, std::list<std::string> args);
 	io_service ios;
 	bool error = false, build = false;
