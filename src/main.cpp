@@ -69,19 +69,19 @@ int main(int argc, const char **argv) {
 			ldargs.push_back(object_file.string());
 			bool build = false;
 			std::string dependencies;
-			std::time_t source_mtime = 0;
+			std::time_t object_mtime = 0;
 			if(!fs::exists(object_file)) build = true;
 			else {
-				source_mtime = fs::last_write_time(file);
-				if(source_mtime >= fs::last_write_time(object_file))
-					build = true;
+				std::time_t source_mtime = fs::last_write_time(file);
+				object_mtime = fs::last_write_time(object_file);
+				if(source_mtime >= object_mtime) build = true;
 				else {
 					auto dependencies_file = object_file;
 					dependencies_file.replace_extension(".dep");
 					if(!fs::exists(dependencies_file) || source_mtime >=
 					   fs::last_write_time(dependencies_file))
 						dependencies = dependencies_file.string();
-					else if(Compiler::check_dependencies(source_mtime,
+					else if(Compiler::check_dependencies(object_mtime,
 								dependencies_file.string())) build = true;
 				}
 			}
@@ -110,7 +110,7 @@ int main(int argc, const char **argv) {
 				ccargs.push_back(std::string("-I")+p);
 			control.start(file.path().string().substr(
 								root_folder.current.size() + 1),
-						  source_mtime, dependencies,
+						  object_mtime, dependencies,
 						  root_folder.cc.string(), ccargs);
 			if(control.compilers.size() >=
 			   std::thread::hardware_concurrency()) {
