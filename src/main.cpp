@@ -3,6 +3,10 @@
 #include "root-folder.hpp"
 #include "control.hpp"
 
+std::ofstream ulog;
+TeeDevice uout_dev(cout,ulog);
+boost::iostreams::stream<TeeDevice> uout(uout_dev);
+
 void load_custom_file(Custom &custom, RootFolder &root_folder,
 					  const char *filename) {
 	fs::path source_file = root_folder.current;
@@ -10,7 +14,7 @@ void load_custom_file(Custom &custom, RootFolder &root_folder,
 	if(fs::exists(source_file)) {
 		auto object_file = root_folder.object_file(source_file);
 		object_file.replace_extension(".umake.so");
-		cout << source_file << " -> " << object_file << endl;
+		uout << source_file << " -> " << object_file << endl;
 		std::string inc;
 		{	auto env = boost::this_process::environment();
 			auto inc_env = env["UMAKE_CUSTOM_INCLUDE_PATH"];
@@ -25,7 +29,7 @@ void load_custom_file(Custom &custom, RootFolder &root_folder,
 								inc,
 								"-o", object_file.string(),
 								source_file.string());
-		cout << "result:" << result << endl;
+		ulog << "result:" << result << endl;
 		if(result != 0) exit(1);
 		boost::dll::shared_library lib(object_file.string());
 		boost::function<void(Custom&)> load;
@@ -45,19 +49,18 @@ void load_custom(Custom &custom, RootFolder &root_folder) {
 }
 
 int main(int argc, const char **argv) {
+	cout << "https://github.com/ulresh/umake" << endl;
+	ulog.open("umake.log", std::ofstream::trunc);
 	RootFolder root_folder;
 	if(!root_folder.valid) return 1;
-	cout << "folder:" << root_folder.current << endl;
-	cout << "project:" << root_folder.root
+	ulog << "folder:" << root_folder.current << endl;
+	ulog << "project:" << root_folder.root
 		 << " base:" << root_folder.base << endl;
 	root_folder.cc = bp::search_path("g++");
-	cout << "cc:" << root_folder.cc << endl;
-	cout << "cpu:" << std::thread::hardware_concurrency() << endl;
+	ulog << "cc:" << root_folder.cc << endl;
+	ulog << "cpu:" << std::thread::hardware_concurrency() << endl;
 	Custom custom;
 	load_custom(custom, root_folder);
-	if(!custom.include_pathes.empty())
-		cout << "custom.include_pathes[0]:" << custom.include_pathes.front()
-			 << endl;
 	std::list<std::string> ldargs;
 	Control control;
 	for(auto &&file :
@@ -65,7 +68,7 @@ int main(int argc, const char **argv) {
 		if(!file.is_directory() && file.path().extension() == ".cpp" &&
 		   file.path().filename().string()[0] != '.') {
 			auto object_file = root_folder.object_file(file);
-			cout << file << " -> " << object_file << endl;
+			ulog << file << " -> " << object_file << endl;
 			ldargs.push_back(object_file.string());
 			bool build = false;
 			std::string dependencies;
@@ -74,13 +77,22 @@ int main(int argc, const char **argv) {
 			else {
 				std::time_t source_mtime = fs::last_write_time(file);
 				object_mtime = fs::last_write_time(object_file);
-				if(source_mtime >= object_mtime) build = true;
+				if(source_mtime >= object_mtime) {
+					build = true;
+					ulog << "source:" << from_time_t(source_mtime)
+						 << " object:" << from_time_t(object_mtime)
+						 << endl;
+				}
 				else {
 					auto dependencies_file = object_file;
 					dependencies_file.replace_extension(".dep");
 					if(!fs::exists(dependencies_file) || source_mtime >=
-					   fs::last_write_time(dependencies_file))
+					   fs::last_write_time(dependencies_file)) {
 						dependencies = dependencies_file.string();
+						ulog << "source:" << from_time_t(source_mtime)
+		<< " dep:" << from_time_t(fs::last_write_time(dependencies_file))
+							 << endl;
+					}
 					else if(Compiler::check_dependencies(object_mtime,
 								dependencies_file.string())) build = true;
 				}
@@ -114,7 +126,7 @@ int main(int argc, const char **argv) {
 						  root_folder.cc.string(), ccargs);
 			if(control.compilers.size() >=
 			   std::thread::hardware_concurrency()) {
-				cout << flush;
+				uout << flush;
 				do { control.ios.run_one(); }
 				while(control.compilers.size() >=
 					  std::thread::hardware_concurrency());
@@ -124,17 +136,17 @@ int main(int argc, const char **argv) {
 	control.ios.run();
 	if(control.error) exit(1);
 	auto binary_file = root_folder.binary_file();
-	cout << "binary:" << binary_file << endl;
+	uout << "binary:" << binary_file << endl;
 	if(!control.build && fs::exists(binary_file)) return 0;
 	ldargs.push_front(binary_file.string());
 	ldargs.push_front("-o");
 	for(auto &&p : custom.library_files) ldargs.push_back(p);
 	for(auto &&p : custom.libraries) ldargs.push_back(std::string("-l")+p);
-	cout << root_folder.cc;
-	for(auto &&a : ldargs) cout << ' ' << a;
-	cout << endl;
+	uout << root_folder.cc;
+	for(auto &&a : ldargs) uout << ' ' << a;
+	uout << endl;
 	int result = bp::system(bp::exe=root_folder.cc, bp::args=ldargs);
-	cout << "result:" << result << endl;
+	ulog << "result:" << result << endl;
 	return result;
 }
 
