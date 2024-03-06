@@ -24,7 +24,7 @@ RootFolder::RootFolder() : current(fs::current_path()) {
 
 fs::path RootFolder::object_file(const fs::path &source_file) const {
 	auto delta = source_file.string().substr(base.size() + 1);
-	cout << delta << endl;
+	ulog << delta << endl;
 	fs::path result(root);
 	result /= "obj";
 	result /= delta;
@@ -32,7 +32,7 @@ fs::path RootFolder::object_file(const fs::path &source_file) const {
 	fs::path folder(result);
 	folder.remove_filename();
 	if(!fs::is_directory(folder)) {
-		cout << "mkdir " << folder << endl;
+		uout << "mkdir " << folder << endl;
 		fs::create_directories(folder);
 	}
 	return result;
@@ -42,7 +42,7 @@ fs::path RootFolder::binary_file() const {
 	fs::path result(root);
 	result /= "bin";
 	if(!fs::is_directory(result)) {
-		cout << "mkdir " << result << endl;
+		uout << "mkdir " << result << endl;
 		fs::create_directory(result);
 	}
 	if(current == base) result /= root.filename();
