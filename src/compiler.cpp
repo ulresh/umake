@@ -2,10 +2,10 @@
 #include "compiler.hpp"
 
 Compiler::Compiler(Control &control, const std::string &source,
-				   std::time_t source_mtime, const std::string &dependencies,
+				   std::time_t object_mtime, const std::string &dependencies,
 				   const std::string &cmd, std::list<std::string> args)
 	: control(control), source(source)
-	, source_mtime(source_mtime), dependencies(dependencies)
+	, object_mtime(object_mtime), dependencies(dependencies)
 	, pout(control.ios), perr(control.ios)
 	, child(bp::exe=cmd, bp::args=args, bp::std_out>pout, bp::std_err>perr)
 {
@@ -46,7 +46,7 @@ void Compiler::handle_pipe(bp::async_pipe *pipep, Buffer *bufp,
 			}
 			if(result) control.error = true;
 			else if(!dependencies.empty() &&
-					check_dependencies(source_mtime, dependencies)) {
+					check_dependencies(object_mtime, dependencies)) {
 				args.pop_front(); // -E
 				args.pop_front(); // -MM
 				args.pop_front(); // -MF
@@ -84,7 +84,19 @@ struct FileCloser {
 	int file;
 };
 
-bool Compiler::check_dependencies(std::time_t source_mtime,
+/*
+ \
+s0 s1 s0
+/home/reshu/project/umake/obj/name test.o: \
+s0 s2                                    s3 s4 s5
+ /home/reshu/project/umake/src/name\ test.cpp \
+s4 s6                               s7        s4 s5
+ /home/reshu/project/umake/src/name\ test.hpp \
+ /home/reshu/project/umake/src/stdlibs.hpp
+                                           s8
+ */
+
+bool Compiler::check_dependencies(std::time_t object_mtime,
 								  const std::string &dependencies) {
 	FileCloser file(open(dependencies.c_str(), O_RDONLY));
 	if(file.file < 0) {
@@ -92,7 +104,10 @@ bool Compiler::check_dependencies(std::time_t source_mtime,
 			 << dependencies << endl;
 		return true;
 	}
+	int state = 0;
+	std::string filename;
 	char *buffer;
+	bool skip = true; // первым указан source_file, который уже проверен
 	std::unique_ptr<char[]> buffer_holder(buffer = new char[buffer_size()]);
 	for(;;) {
 		int size = read(file.file, buffer, buffer_size());
@@ -103,14 +118,94 @@ bool Compiler::check_dependencies(std::time_t source_mtime,
 			return true;
 		}
 		else if(size == 0) {
-			// TODO
+			if(state != 8 || !filename.empty()) goto bad_format;
 			break;
 		}
 		else {
-			// TODO
+			char *ptr = buffer, *mark = buffer, *end = buffer + size;
+			for(; ptr < end; ++ptr) switch(state) {
+				default: goto bad_format;
+				case 0: switch(*ptr) {
+					case ' ': break;
+					case '\\': ++state; break;
+					case '\n': goto bad_format;
+					default: state = 2;
+				}
+				break;
+				case 1:
+				case 5:
+					if(*ptr != '\n') goto bad_format;
+					--state;
+					break;
+				case 2: switch(*ptr) {
+					// case ' ': // in default
+					case '\n':
+					case '\\': goto bad_format;
+					case ':': ++state; break;
+					default: ;
+					}
+					break;
+				case 3: switch(*ptr) {
+					case ' ': ++state; break;
+					// case ':': // in default
+					case '\\':
+					case '\n': goto bad_format;
+						// TODO
+					default: --state;
+					}
+					break;
+				case 4: switch(*ptr) {
+					case ' ': break;
+					case '\\': ++state; break;
+					case '\n': goto bad_format;
+					default: mark = ptr; state = 6;
+					}
+					break;
+				case 6: switch(*ptr) {
+					case '\n':
+						state = 10;
+					case ' ':
+						state -= 2;
+						if(ptr > mark) filename.append(mark, ptr - mark);
+						if(skip) {
+							skip = false;
+							cout << dependencies << " skip "
+								 << filename << endl;
+						}
+						else {
+							if(fs::last_write_time(filename) >=
+							   object_mtime) {
+								cout << dependencies << " need build for "
+									 << filename << ' '
+							 << from_time_t(fs::last_write_time(filename))
+							 << " object:" << from_time_t(object_mtime)
+									 << endl;
+								return true;
+							}
+							cout << dependencies << ' ' << filename << endl;
+						}
+						filename.clear();
+						break;
+					case '\\':
+						if(ptr > mark) filename.append(mark, ptr - mark);
+						++state;
+						break;
+					default: ;
+					}
+					break;
+				case 7:
+					if(*ptr != ' ') goto bad_format;
+					mark = ptr; --state;
+					break;
+			}
+			if(state == 6 && mark < end) filename.append(mark, end - mark);
 		}
 	}
-	return true; // TODO изменить в итоговой версии
+	return false;
+ bad_format:
+	cerr << "Ошибка формата в файле зависимостей " << dependencies
+		 << " state:" << state << endl;
+	return true;
 }
 
 /*
