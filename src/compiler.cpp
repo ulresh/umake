@@ -70,6 +70,7 @@ void Compiler::handle_pipe(bp::async_pipe *pipep, Buffer *bufp,
 								   ph::error, ph::bytes_transferred));
 		else {
 			bufp->data.emplace_back();
+			bufp->last_block_size = 0;
 			ai::async_read(*pipep, ai::buffer(bufp->data.back()),
 					   boost::bind(&Compiler::handle_pipe, this, pipep, bufp,
 								   ph::error, ph::bytes_transferred));
