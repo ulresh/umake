@@ -8,7 +8,9 @@ Compiler::Compiler(Control &control, const std::string &source,
 	, source_mtime(source_mtime), dependencies(dependencies)
 	, pout(control.ios), perr(control.ios)
 	, child(bp::exe=cmd, bp::args=args, bp::std_out>pout, bp::std_err>perr)
-{}
+{
+	if(!dependencies.empty()) { this->cmd = cmd; this->args = args; }
+}
 
 void Compiler::async_start_pipes() {
 	bout.data.emplace_back();
@@ -34,7 +36,6 @@ void Compiler::handle_pipe(bp::async_pipe *pipep, Buffer *bufp,
 			int result = child.exit_code();
 			cout << source << " result:" << result << " wait time:"
 				 << (microsec_clock::local_time() - t) << endl;
-			if(result) control.error = true;
 			if(!berr.empty()) {
 				cerr << berr << endl;
 				if(!berr.eol_at_end()) cerr << endl;
@@ -42,6 +43,19 @@ void Compiler::handle_pipe(bp::async_pipe *pipep, Buffer *bufp,
 			if(!bout.empty()) {
 				cout << bout << endl;
 				if(!bout.eol_at_end()) cout << endl;
+			}
+			if(result) control.error = true;
+			else if(!dependencies.empty() &&
+					check_dependencies(source_mtime, dependencies)) {
+				args.pop_front(); // -E
+				args.pop_front(); // -MM
+				args.pop_front(); // -MF
+				args.pop_front(); // dependencies
+				args.pop_front(); // -MT
+				control.build = true;
+				args.emplace_front("-o");
+				args.emplace_front("-c");
+				control.start(source, 0, std::string(), cmd, args);
 			}
 			control.compilers.erase(child.id());
 		}
@@ -61,6 +75,11 @@ void Compiler::handle_pipe(bp::async_pipe *pipep, Buffer *bufp,
 								   ph::error, ph::bytes_transferred));
 		}
 	}
+}
+
+bool Compiler::check_dependencies(std::time_t source_mtime,
+								  const std::string &dependencies) {
+	return true;
 }
 
 /*
