@@ -17,6 +17,8 @@ struct Compiler {
 	Control &control;
 	const std::string source, dependencies;
 	std::time_t source_mtime;
+	std::string cmd;
+	std::list<std::string> args;
 	bp::async_pipe pout, perr;
 	bp::child child;
 	Buffer bout, berr;
