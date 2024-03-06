@@ -9,6 +9,7 @@
 #include <boost/asio.hpp>
 #include <boost/bind/bind.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/date_time/c_local_time_adjustor.hpp>
 #include <boost/iostreams/tee.hpp>
 #include <boost/iostreams/stream.hpp>
 
@@ -35,6 +36,10 @@ using boost::posix_time::from_time_t;
 extern std::ofstream ulog;
 typedef boost::iostreams::tee_device<std::ostream,std::ostream> TeeDevice;
 extern boost::iostreams::stream<TeeDevice> uout;
+
+inline ptime utc2local(ptime t) {
+	return boost::date_time::c_local_adjustor<ptime>::utc_to_local(t); }
+inline ptime utc2local(std::time_t t) { return utc2local(from_time_t(t)); }
 
 /*
  * Local Variables:
