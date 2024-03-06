@@ -79,8 +79,8 @@ int main(int argc, const char **argv) {
 				object_mtime = fs::last_write_time(object_file);
 				if(source_mtime >= object_mtime) {
 					build = true;
-					ulog << "source:" << from_time_t(source_mtime)
-						 << " object:" << from_time_t(object_mtime)
+					ulog << "source:" << utc2local(source_mtime)
+						 << " object:" << utc2local(object_mtime)
 						 << endl;
 				}
 				else {
@@ -89,8 +89,8 @@ int main(int argc, const char **argv) {
 					if(!fs::exists(dependencies_file) || source_mtime >=
 					   fs::last_write_time(dependencies_file)) {
 						dependencies = dependencies_file.string();
-						ulog << "source:" << from_time_t(source_mtime)
-		<< " dep:" << from_time_t(fs::last_write_time(dependencies_file))
+						ulog << "source:" << utc2local(source_mtime)
+		<< " dep:" << utc2local(fs::last_write_time(dependencies_file))
 							 << endl;
 					}
 					else if(Compiler::check_dependencies(object_mtime,
@@ -134,7 +134,10 @@ int main(int argc, const char **argv) {
 			if(control.error) break;
 		}
 	control.ios.run();
-	if(control.error) exit(1);
+	if(control.error) {
+		cout << "error files:" << control.error << endl;
+		exit(1);
+	}
 	auto binary_file = root_folder.binary_file();
 	uout << "binary:" << binary_file << endl;
 	if(!control.build && fs::exists(binary_file)) return 0;
@@ -147,6 +150,7 @@ int main(int argc, const char **argv) {
 	uout << endl;
 	int result = bp::system(bp::exe=root_folder.cc, bp::args=ldargs);
 	ulog << "result:" << result << endl;
+	if(result) cout << "error files:1" << endl;
 	return result;
 }
 
