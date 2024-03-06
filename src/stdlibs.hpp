@@ -36,6 +36,10 @@ extern std::ofstream ulog;
 typedef boost::iostreams::tee_device<std::ostream,std::ostream> TeeDevice;
 extern boost::iostreams::stream<TeeDevice> uout;
 
+inline ptime utc2local(ptime t) {
+	return boost::date_time::c_local_adjustor<ptime>::utc_to_local(t); }
+inline ptime utc2local(std::time_t t) { return utc2local(from_time_t(t)); }
+
 /*
  * Local Variables:
  * mode: c++

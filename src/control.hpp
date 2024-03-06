@@ -8,7 +8,8 @@ struct Control {
 			   std::time_t object_mtime, const std::string &dependencies,
 			   const std::string &cmd, std::list<std::string> args);
 	io_service ios;
-	bool error = false, build = false;
+	int error = 0;
+	bool build = false;
 	std::map<pid_t, std::unique_ptr<Compiler> > compilers;
 };
 

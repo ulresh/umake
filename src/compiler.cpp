@@ -37,14 +37,14 @@ void Compiler::handle_pipe(bp::async_pipe *pipep, Buffer *bufp,
 			ulog << source << " result:" << result << " wait time:"
 				 << (microsec_clock::local_time() - t) << endl;
 			if(!berr.empty()) {
-				cerr << berr << endl;
+				cerr << source << " STDERR" << endl << berr << endl;
 				if(!berr.eol_at_end()) cerr << endl;
 			}
 			if(!bout.empty()) {
-				cout << bout << endl;
+				cout << source << " STDOUT" << endl << bout << endl;
 				if(!bout.eol_at_end()) cout << endl;
 			}
-			if(result) control.error = true;
+			if(result) ++control.error;
 			else if(!dependencies.empty() &&
 					check_dependencies(object_mtime, dependencies)) {
 				args.pop_front(); // -E
@@ -178,8 +178,8 @@ bool Compiler::check_dependencies(std::time_t object_mtime,
 							   object_mtime) {
 								ulog << dependencies << " need build for "
 									 << filename << ' '
-							 << from_time_t(fs::last_write_time(filename))
-							 << " object:" << from_time_t(object_mtime)
+							 << utc2local(fs::last_write_time(filename))
+							 << " object:" << utc2local(object_mtime)
 									 << endl;
 								return true;
 							}
