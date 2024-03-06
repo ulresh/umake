@@ -25,7 +25,7 @@ void Compiler::async_start_pipes() {
 
 void Compiler::handle_pipe(bp::async_pipe *pipep, Buffer *bufp,
 						   const error_code &ec, std::size_t size) {
-	cout << source << (pipep == &pout ? " out" : " err")
+	ulog << source << (pipep == &pout ? " out" : " err")
 		 << " size:" << size << " ec:" << ec << endl;
 	bufp->last_block_size += size;
 	if(ec) {
@@ -34,7 +34,7 @@ void Compiler::handle_pipe(bp::async_pipe *pipep, Buffer *bufp,
 			ptime t = microsec_clock::local_time();
 			child.wait();
 			int result = child.exit_code();
-			cout << source << " result:" << result << " wait time:"
+			ulog << source << " result:" << result << " wait time:"
 				 << (microsec_clock::local_time() - t) << endl;
 			if(!berr.empty()) {
 				cerr << berr << endl;
@@ -111,7 +111,7 @@ bool Compiler::check_dependencies(std::time_t object_mtime,
 	std::unique_ptr<char[]> buffer_holder(buffer = new char[buffer_size()]);
 	for(;;) {
 		int size = read(file.file, buffer, buffer_size());
-		cout << dependencies << " size:" << size << endl;
+		ulog << dependencies << " size:" << size << endl;
 		if(size < 0) {
 			cerr << "Ошибка чтения файла зависимостей "
 				 << dependencies << endl;
@@ -169,20 +169,20 @@ bool Compiler::check_dependencies(std::time_t object_mtime,
 						if(ptr > mark) filename.append(mark, ptr - mark);
 						if(skip) {
 							skip = false;
-							cout << dependencies << " skip "
+							ulog << dependencies << " skip "
 								 << filename << endl;
 						}
 						else {
 							if(fs::last_write_time(filename) >=
 							   object_mtime) {
-								cout << dependencies << " need build for "
+								ulog << dependencies << " need build for "
 									 << filename << ' '
 							 << from_time_t(fs::last_write_time(filename))
 							 << " object:" << from_time_t(object_mtime)
 									 << endl;
 								return true;
 							}
-							cout << dependencies << ' ' << filename << endl;
+							ulog << dependencies << ' ' << filename << endl;
 						}
 						filename.clear();
 						break;
