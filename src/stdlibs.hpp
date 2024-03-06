@@ -28,6 +28,7 @@ using boost::posix_time::milliseconds;
 using boost::posix_time::seconds;
 using boost::posix_time::minutes;
 using boost::posix_time::time_duration;
+using boost::posix_time::from_time_t;
 
 /*
  * Local Variables:
