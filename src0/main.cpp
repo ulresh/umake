@@ -83,7 +83,8 @@ void load_custom_file(Custom &custom, RootFolder &root_folder,
 			auto inc_env = env["UMAKE_CUSTOM_INCLUDE_PATH"];
 			if(inc_env.empty()) {
 #ifdef UMAKE_DEFAULT_CUSTOM_INCLUDE_PATH
-#define SM(x) #x
+#define SM2(x) #x
+#define SM(x) SM2(x)
 				inc = "-I" SM(UMAKE_DEFAULT_CUSTOM_INCLUDE_PATH);
 #else
 				inc = "-I../src0";
