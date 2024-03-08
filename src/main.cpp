@@ -27,8 +27,19 @@ void load_custom_file(Custom &custom, RootFolder &root_folder,
 				fs::path p = prog;
 				p.remove_filename();
 				p /= "../src1";
+				fs::path check = p;
+				check /= "umake/custom.hpp";
 				inc = "-I";
-				inc.append(p.string());
+				if(fs::exists(check)) inc.append(p.string());
+				else {
+					p = prog;
+					p.remove_filename();
+					p /= "../src";
+					fs::path check = p;
+					check /= "umake/custom.hpp";
+					if(fs::exists(check)) inc.append(p.string());
+					else inc = "-I.";
+				}
 #endif
 				ulog << "inc:" << inc << endl;
 			}
