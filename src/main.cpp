@@ -8,17 +8,30 @@ TeeDevice uout_dev(cout,ulog);
 boost::iostreams::stream<TeeDevice> uout(uout_dev);
 
 void load_custom_file(Custom &custom, RootFolder &root_folder,
-					  const char *filename) {
+		const char *prog, std::string &inc, const char *filename) {
 	fs::path source_file = root_folder.current;
 	source_file /= filename;
 	if(fs::exists(source_file)) {
 		auto object_file = root_folder.object_file(source_file);
 		object_file.replace_extension(".umake.so");
 		uout << source_file << " -> " << object_file << endl;
-		std::string inc;
-		{	auto env = boost::this_process::environment();
+		if(inc.empty()) {
+			auto env = boost::this_process::environment();
 			auto inc_env = env["UMAKE_CUSTOM_INCLUDE_PATH"];
-			if(inc_env.empty()) inc = "-I.";
+			if(inc_env.empty()) {
+#ifdef UMAKE_DEFAULT_CUSTOM_INCLUDE_PATH
+#define SM2(x) #x
+#define SM(x) SM2(x)
+				inc = "-I" SM(UMAKE_DEFAULT_CUSTOM_INCLUDE_PATH);
+#else
+				fs::path p = prog;
+				p.remove_filename();
+				p /= "../src1";
+				inc = "-I";
+				inc.append(p.string());
+#endif
+				ulog << "inc:" << inc << endl;
+			}
 			else {
 				inc = "-I";
 				inc.append(inc_env.to_string());
@@ -43,9 +56,10 @@ void load_custom_file(Custom &custom, RootFolder &root_folder,
 	}
 }
 
-void load_custom(Custom &custom, RootFolder &root_folder) {
-	load_custom_file(custom, root_folder, "build.umake");
-	load_custom_file(custom, root_folder, "build.local.umake");
+void load_custom(Custom &custom, RootFolder &root_folder, const char *prog) {
+	std::string inc;
+	load_custom_file(custom, root_folder, prog, inc, "build.umake");
+	load_custom_file(custom, root_folder, prog, inc, "build.local.umake");
 }
 
 int main(int argc, const char **argv) {
@@ -60,7 +74,7 @@ int main(int argc, const char **argv) {
 	ulog << "cc:" << root_folder.cc << endl;
 	ulog << "cpu:" << std::thread::hardware_concurrency() << endl;
 	Custom custom;
-	load_custom(custom, root_folder);
+	load_custom(custom, root_folder, argv[0]);
 	std::list<std::string> ldargs;
 	Control control;
 	for(auto &&file :
