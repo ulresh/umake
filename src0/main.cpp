@@ -58,7 +58,7 @@ struct RootFolder {
 		fs::path result(root);
 		result /= "bin";
 		if(!fs::is_directory(result)) {
-			uout << "mkdir " << result << endl;
+			cout << "mkdir " << result << endl;
 			fs::create_directory(result);
 		}
 		if(current == base) result /= root.filename();
@@ -83,7 +83,8 @@ void load_custom_file(Custom &custom, RootFolder &root_folder,
 			auto inc_env = env["UMAKE_CUSTOM_INCLUDE_PATH"];
 			if(inc_env.empty()) {
 #ifdef UMAKE_DEFAULT_CUSTOM_INCLUDE_PATH
-				inc = "-I" #UMAKE_DEFAULT_CUSTOM_INCLUDE_PATH;
+#define SM(x) #x
+				inc = "-I" SM(UMAKE_DEFAULT_CUSTOM_INCLUDE_PATH);
 #else
 				inc = "-I../src0";
 #endif
