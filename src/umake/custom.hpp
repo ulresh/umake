@@ -4,6 +4,8 @@
 #include <string>
 
 struct Custom {
+	void add_define(const std::string &s) {
+		definitions.push_back(s); }
 	void add_system_include_path(const std::string &s) {
 		system_include_pathes.push_back(s); }
 	void add_sysinc(const std::string &s) {
@@ -14,7 +16,7 @@ struct Custom {
 		libraries.push_back(s); }
 	void add_library_file(const std::string &s) {
 		library_files.push_back(s); }
-	std::list<std::string> system_include_pathes,
+	std::list<std::string> definitions, system_include_pathes,
 		include_pathes, libraries, library_files;
 };
 
