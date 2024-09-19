@@ -111,12 +111,15 @@ int main(int argc, const char **argv) {
 				else {
 					auto dependencies_file = object_file;
 					dependencies_file.replace_extension(".dep");
-					if(!fs::exists(dependencies_file) || source_mtime >=
-					   fs::last_write_time(dependencies_file)) {
+					bool dep_exists; std::time_t dep_mtime;
+					if(!(dep_exists = fs::exists(dependencies_file)) ||
+					   source_mtime >= (dep_mtime =
+					   fs::last_write_time(dependencies_file))) {
 						dependencies = dependencies_file.string();
-						ulog << "source:" << utc2local(source_mtime)
-		<< " dep:" << utc2local(fs::last_write_time(dependencies_file))
-							 << endl;
+						ulog << "source:" << utc2local(source_mtime);
+						if(dep_exists)
+							ulog << " dep:" << utc2local(dep_mtime);
+						ulog << endl;
 					}
 					else if(Compiler::check_dependencies(object_mtime,
 								dependencies_file.string())) build = true;
