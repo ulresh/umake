@@ -140,6 +140,8 @@ int main(int argc, const char **argv) {
 				ccargs.emplace_back("-MT");
 			}
 			ccargs.push_back(object_file.string());
+			for(auto &&p : custom.definitions)
+				ccargs.push_back(std::string("-D")+p);
 			ccargs.push_back(file.path().string());
 			ccargs.emplace_back("-fdiagnostics-color");
 			for(auto &&p : custom.system_include_pathes) {
