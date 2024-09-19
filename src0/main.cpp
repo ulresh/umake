@@ -57,6 +57,10 @@ struct RootFolder {
 	fs::path binary_file() const {
 		fs::path result(root);
 		result /= "bin";
+		if(!fs::is_directory(result)) {
+			cout << "mkdir " << result << endl;
+			fs::create_directory(result);
+		}
 		if(current == base) result /= root.filename();
 		else result /= current.filename();
 		return result;
@@ -74,8 +78,26 @@ void load_custom_file(Custom &custom, RootFolder &root_folder,
 		auto object_file = root_folder.object_file(source_file);
 		object_file.replace_extension(".umake.so");
 		cout << source_file << " -> " << object_file << endl;
+		std::string inc;
+		{	auto env = boost::this_process::environment();
+			auto inc_env = env["UMAKE_CUSTOM_INCLUDE_PATH"];
+			if(inc_env.empty()) {
+#ifdef UMAKE_DEFAULT_CUSTOM_INCLUDE_PATH
+#define SM2(x) #x
+#define SM(x) SM2(x)
+				inc = "-I" SM(UMAKE_DEFAULT_CUSTOM_INCLUDE_PATH);
+#else
+				inc = "-I../src0";
+#endif
+			}
+			else {
+				inc = "-I";
+				inc.append(inc_env.to_string());
+				cout << "inc:" << inc << endl;
+			}
+		}
 		int result = bp::system(root_folder.cc, "-x", "c++", "-shared",
-								"-I.",
+								inc,
 								"-o", object_file.string(),
 								source_file.string());
 		cout << "result:" << result << endl;
@@ -122,6 +144,10 @@ int main(int argc, const char **argv) {
 			ccargs.emplace_back("-o");
 			ccargs.push_back(object_file.string());
 			ccargs.push_back(file.path().string());
+			for(auto &&p : custom.system_include_pathes) {
+				ccargs.emplace_back("-isystem");
+				ccargs.push_back(p);
+			}
 			for(auto &&p : custom.include_pathes)
 				ccargs.push_back(std::string("-I")+p);
 			cout << root_folder.cc;
