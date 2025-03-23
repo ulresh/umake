@@ -22,6 +22,7 @@ g++ -o bin/umake0 \
   -DUMAKE_DEFAULT_CUSTOM_INCLUDE_PATH=/home/reshu/project/umake/src0 \
   src0/main.cpp -I/usr/local/share/boost_1_87/include \
   /usr/local/share/boost_1_87/lib/libboost_filesystem.a -ldl
+cp -vi note/custom/reshu-vivo/build.local.umake src/
 cd src; ../bin/umake0; cd ..
 
 
