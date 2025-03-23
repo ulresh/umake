@@ -1,3 +1,11 @@
+!2025-03-23 09:12:24
+ssh-keygen -f ~/.ssh/id_rsa_github_ulresh -N '' -t rsa
+cat ~/.ssh/id_rsa_github_ulresh.pub
+git config core.sshCommand '/usr/bin/ssh -i /home/reshu/.ssh/id_rsa_github_ulresh'
+git commit -a -m _; echo; git push; echo; git status
+
+
+
 !2025-03-23 08:56:56
 wget https://archives.boost.io/release/1.84.0/source/boost_1_84_0.7z
 
