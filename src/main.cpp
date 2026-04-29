@@ -214,7 +214,7 @@ int main(int argc, const char **argv) {
 		std::string debug_file = binary_file.string();
 		debug_file += "-g";
 		uout << "cp " << binary_file.string() << ' ' << debug_file << endl;
-		result = bp::system("cp", binary_file, debug_file);
+		result = bp::system("/bin/cp", binary_file, debug_file);
 		ulog << "result:" << result << endl;
 		if(result) {
 			cout << "error files:1" << endl;
