@@ -204,8 +204,29 @@ int main(int argc, const char **argv) {
 	uout << endl;
 	int result = bp::system(bp::exe=custom.cc, bp::args=ldargs);
 	ulog << "result:" << result << endl;
-	if(result) cout << "error files:1" << endl;
-	return result;
+	if(result) {
+		cout << "error files:1" << endl;
+		return result;
+	}
+	if(!custom.strip.empty()) {
+		std::string debug_file = binary_file.string();
+		debug_file += "-g";
+		uout << "cp " << binary_file.string() << ' ' << debug_file << endl;
+		result = bp::system("cp", binary_file, debug_file);
+		ulog << "result:" << result << endl;
+		if(result) {
+			cout << "error files:1" << endl;
+			return result;
+		}
+		uout << custom.strip << ' ' << binary_file.string() << endl;
+		result = bp::system(custom.strip, binary_file);
+		ulog << "result:" << result << endl;
+		if(result) {
+			cout << "error files:1" << endl;
+			return result;
+		}
+	}
+	return 0;
 }
 
 /*
