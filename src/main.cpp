@@ -94,6 +94,7 @@ int main(int argc, const char **argv) {
 	ulog << "cc:" << root_folder.cc << endl;
 	ulog << "cpu:" << std::thread::hardware_concurrency() << endl;
 	Custom custom;
+	custom.cc = root_folder.cc.string();
 	// load_custom(custom, root_folder, argv[0]);
 	if(argc == 1)
 		load_custom_file(custom, root_folder, "build.umake");
@@ -174,7 +175,7 @@ int main(int argc, const char **argv) {
 			control.start(file.path().string().substr(
 								root_folder.current.size() + 1),
 						  object_mtime, dependencies,
-						  root_folder.cc.string(), ccargs);
+						  custom.cc, ccargs);
 			if(control.compilers.size() >=
 			   std::thread::hardware_concurrency()) {
 				uout << flush;
@@ -196,10 +197,10 @@ int main(int argc, const char **argv) {
 	ldargs.push_front("-o");
 	for(auto &&p : custom.library_files) ldargs.push_back(p);
 	for(auto &&p : custom.libraries) ldargs.push_back(std::string("-l")+p);
-	uout << root_folder.cc;
+	uout << custom.cc;
 	for(auto &&a : ldargs) uout << ' ' << a;
 	uout << endl;
-	int result = bp::system(bp::exe=root_folder.cc, bp::args=ldargs);
+	int result = bp::system(bp::exe=custom.cc, bp::args=ldargs);
 	ulog << "result:" << result << endl;
 	if(result) cout << "error files:1" << endl;
 	return result;
