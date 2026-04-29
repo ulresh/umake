@@ -166,6 +166,8 @@ int main(int argc, const char **argv) {
 				ccargs.push_back(std::string("-D")+p);
 			ccargs.push_back(file.path().string());
 			ccargs.emplace_back("-fdiagnostics-color");
+			ccargs.insert(ccargs.end(),
+						  custom.cflags.begin(), custom.cflags.end());
 			for(auto &&p : custom.system_include_pathes) {
 				ccargs.emplace_back("-isystem");
 				ccargs.push_back(p);
