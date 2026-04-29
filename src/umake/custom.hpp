@@ -17,12 +17,14 @@ struct Custom {
 		include_pathes.push_back(s); }
 	void add_library(const std::string &s) {
 		libraries.push_back(s); }
+	void add_ldflag(const std::string &s) {
+		ldflags.push_back(s); }
 	void add_library_file(const std::string &s) {
 		library_files.push_back(s); }
 	std::string cc;
 	std::string strip;
 	std::list<std::string> definitions, cflags, system_include_pathes,
-		include_pathes, libraries, library_files;
+		include_pathes, ldflags, libraries, library_files;
 };
 
 /*

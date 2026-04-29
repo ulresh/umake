@@ -197,6 +197,8 @@ int main(int argc, const char **argv) {
 	if(!control.build && fs::exists(binary_file)) return 0;
 	ldargs.push_front(binary_file.string());
 	ldargs.push_front("-o");
+	ldargs.insert(ldargs.end(),
+				  custom.ldflags.begin(), custom.ldflags.end());
 	for(auto &&p : custom.library_files) ldargs.push_back(p);
 	for(auto &&p : custom.libraries) ldargs.push_back(std::string("-l")+p);
 	uout << custom.cc;
