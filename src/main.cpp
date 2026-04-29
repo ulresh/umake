@@ -108,6 +108,12 @@ int main(int argc, const char **argv) {
 		cerr << "Слишком много параметров" << endl;
 		exit(1);
 	}
+	if(!custom.generate.empty()) {
+		uout << custom.generate << endl;
+		auto result = bp::system(custom.generate);
+		ulog << "result:" << result << endl;
+		if(result) return result;
+	}
 	std::list<std::string> ldargs;
 	Control control;
 	for(auto &&file :

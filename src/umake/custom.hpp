@@ -21,6 +21,7 @@ struct Custom {
 		ldflags.push_back(s); }
 	void add_library_file(const std::string &s) {
 		library_files.push_back(s); }
+	std::string generate;
 	std::string cc;
 	std::string strip;
 	std::list<std::string> definitions, cflags, system_include_pathes,
