@@ -8,13 +8,15 @@ TeeDevice uout_dev(cout,ulog);
 boost::iostreams::stream<TeeDevice> uout(uout_dev);
 
 void load_custom_file(Custom &custom, RootFolder &root_folder,
-		const char *prog, std::string &inc, const char *filename) {
+		// const char *prog, std::string &inc, const char *filename
+					  std::string filename) {
 	fs::path source_file = root_folder.current;
 	source_file /= filename;
 	if(fs::exists(source_file)) {
 		auto object_file = root_folder.object_file(source_file);
 		object_file.replace_extension(".umake.so");
 		uout << source_file << " -> " << object_file << endl;
+		/*
 		if(inc.empty()) {
 			auto env = boost::this_process::environment();
 			auto inc_env = env["UMAKE_CUSTOM_INCLUDE_PATH"];
@@ -49,6 +51,7 @@ void load_custom_file(Custom &custom, RootFolder &root_folder,
 				cout << "inc:" << inc << endl;
 			}
 		}
+		*/
 		int result = bp::system(root_folder.cc, "-x", "c++", "-shared",
 								inc,
 								"-o", object_file.string(),
@@ -65,13 +68,19 @@ void load_custom_file(Custom &custom, RootFolder &root_folder,
 		load(custom);
 		lib.unload();
 	}
+	else {
+		cerr << "Не найден файл " << source_file << endl;
+		exit(1);
+	}
 }
 
+/*
 void load_custom(Custom &custom, RootFolder &root_folder, const char *prog) {
 	std::string inc;
 	load_custom_file(custom, root_folder, prog, inc, "build.umake");
 	load_custom_file(custom, root_folder, prog, inc, "build.local.umake");
 }
+*/
 
 int main(int argc, const char **argv) {
 	cout << "https://github.com/ulresh/umake" << endl;
@@ -85,7 +94,19 @@ int main(int argc, const char **argv) {
 	ulog << "cc:" << root_folder.cc << endl;
 	ulog << "cpu:" << std::thread::hardware_concurrency() << endl;
 	Custom custom;
-	load_custom(custom, root_folder, argv[0]);
+	// load_custom(custom, root_folder, argv[0]);
+	if(argc == 1)
+		load_custom_file(custom, root_folder, "build.umake");
+	else if(argc == 2) {
+		root_folder.suffix = argv[1];
+		std::stringstream s;
+		s << "build." << argv[1] << ".umake";
+		load_custom_file(custom, root_folder, s.str());
+	}
+	else {
+		cerr << "Слишком много параметров" << endl;
+		exit(1);
+	}
 	std::list<std::string> ldargs;
 	Control control;
 	for(auto &&file :

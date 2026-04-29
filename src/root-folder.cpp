@@ -26,7 +26,12 @@ fs::path RootFolder::object_file(const fs::path &source_file) const {
 	auto delta = source_file.string().substr(base.size() + 1);
 	ulog << delta << endl;
 	fs::path result(root);
-	result /= "obj";
+	if(suffix.empty()) result /= "obj";
+	else {
+		std::stringstream s;
+		s << "obj." << suffix;
+		result /= s.str();
+	}
 	result /= delta;
 	result.replace_extension(".o");
 	fs::path folder(result);

@@ -13,6 +13,7 @@ struct RootFolder {
 	bool valid = false;
 	fs::path current, root, base;
 	bp::filesystem::path cc;
+	std::string suffix;
 };
 
 /*
