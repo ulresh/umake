@@ -53,7 +53,7 @@ void load_custom_file(Custom &custom, RootFolder &root_folder,
 		}
 		*/
 		int result = bp::system(root_folder.cc, "-x", "c++", "-shared",
-								inc,
+								// inc,
 								"-o", object_file.string(),
 								source_file.string());
 		ulog << "result:" << result << endl;
